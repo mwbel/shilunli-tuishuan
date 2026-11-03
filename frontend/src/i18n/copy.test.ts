@@ -139,6 +139,14 @@ test("Tibetan astronomy and five-element pages do not retain Chinese labels", ()
   }
 });
 
+test("unified seven-motion navigation labels are translated for Tibetan routes", () => {
+  for (const copy of ["七曜运动", "当地天球", "七曜数据", "显示天体及轨迹", "当地天球 · 七曜轨迹"]) {
+    const translated = appText("bo", copy);
+    assert.notEqual(translated, copy, `Unified navigation copy is not translated: ${copy}`);
+    assert.doesNotMatch(translated, /[\u3400-\u9fff]/, `Unified navigation copy retained Chinese: ${copy}`);
+  }
+});
+
 test("dynamic calendar dates and countdowns do not fall back to Chinese", () => {
   const dynamicCopy = [
     "2026年10月10日 周六",

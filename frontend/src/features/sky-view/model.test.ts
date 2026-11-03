@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { annualIndex, catalogVector, DEG, equatorialToHorizontal, horizontalVector, projector, type StarRow } from "./model";
+import { annualIndex, catalogVector, DEFAULT_VISIBLE_BODY_IDS, DEG, equatorialToHorizontal, getVisibleBodies, horizontalVector, projector, type StarRow } from "./model";
 
 const near = (actual: number, expected: number, tolerance = 1e-8) => assert.ok(Math.abs(actual - expected) < tolerance, `${actual} != ${expected}`);
 
@@ -12,6 +12,13 @@ test("equatorial coordinates preserve east/west and place the celestial pole at 
   near(equatorialToHorizontal([0, 1, 0], 0, 0)[0], 1);
   near(equatorialToHorizontal([0, -1, 0], 0, 0)[0], -1);
   near(equatorialToHorizontal([1, 0, 0], 0, 0)[2], 1);
+});
+
+test("local-sky body selection defaults to Sun and Moon and filters each checked trail", () => {
+  assert.deepEqual(getVisibleBodies(new Set(DEFAULT_VISIBLE_BODY_IDS)).map((body) => body.id), ["sun", "moon"]);
+  assert.deepEqual(getVisibleBodies(new Set(["mars", "saturn"])).map((body) => body.id), ["mars", "saturn"]);
+  assert.deepEqual(getVisibleBodies(new Set(["sun", "mercury", "saturn"])).map((body) => body.id), ["sun", "mercury", "saturn"]);
+  assert.deepEqual(getVisibleBodies(new Set()).map((body) => body.id), []);
 });
 
 test("the perspective camera looks south with east on its left and hides the rear sky", () => {

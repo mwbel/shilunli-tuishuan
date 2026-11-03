@@ -23,9 +23,13 @@ test("earth page helpers place basic data before seven stars", () => {
   assert.equal(getEarthPageIndex("five-elements"), 1);
   assert.equal(getEarthPageIndex("tibetan-cycle"), 1);
   assert.equal(getEarthPageIndex("seven-stars"), 2);
-  assert.equal(getEarthPageIndex("annual-motion"), 3);
+  assert.equal(getEarthPageIndex("seven-stars", "five-elements"), 1);
+  assert.equal(getEarthPageIndex("seven-stars", "five-elements-sphere"), 1);
+  assert.equal(getEarthPageIndex("annual-motion"), 2);
   assert.equal(getEarthPageIndex("other"), 0);
-  assert.equal(getEarthTabLabel("seven-stars"), "七星轨迹");
+  assert.equal(getEarthTabLabel("seven-stars"), "七曜运动");
+  assert.equal(getEarthTabLabel("seven-stars", "five-elements"), "天文历算基本数据");
+  assert.equal(getEarthTabLabel("seven-stars", "five-elements-sphere"), "天文历算基本数据");
   assert.equal(getEarthTabLabel("five-elements"), "天文历算基本数据");
   assert.equal(getEarthTabLabel("tibetan-cycle"), "天文历算基本数据");
   assert.equal(resolveBasicDataSubtab("five-planets"), "five-planets");
@@ -34,17 +38,24 @@ test("earth page helpers place basic data before seven stars", () => {
 });
 
 test("related sky views share section entries while legacy URLs keep their destinations", () => {
-  assert.equal(getEarthPageIndex("celestial-motion"), 3);
-  assert.equal(getEarthPageIndex("annual-motion"), 3);
-  assert.equal(getEarthPageIndex("seven-stars", "geocentric-motion"), 3);
+  assert.equal(getEarthPageIndex("celestial-motion"), 2);
+  assert.equal(getEarthPageIndex("annual-motion"), 2);
+  assert.equal(getEarthPageIndex("seven-stars", "geocentric-motion"), 2);
+  assert.equal(getEarthPageIndex("seven-stars", "seven-data"), 2);
+  assert.equal(getEarthPageIndex("seven-stars"), 2);
   assert.equal(resolveCelestialMotionView("annual-motion", null), "annual-motion");
   assert.equal(resolveCelestialMotionView("seven-stars", null, "geocentric-motion"), "geocentric-motion");
-  assert.equal(getEarthTabLabel("annual-motion"), "天体运动");
+  assert.equal(resolveCelestialMotionView("seven-stars", null), "local-sky");
+  assert.equal(resolveCelestialMotionView("seven-stars", null, "seven-data"), "seven-data");
+  assert.equal(resolveCelestialMotionView("celestial-motion", "seven-data"), "seven-data");
+  assert.equal(getEarthTabLabel("annual-motion"), "七曜运动");
+  assert.equal(getEarthTabLabel("seven-stars"), "七曜运动");
 
-  assert.equal(getEarthPageIndex("lunar-phenomena"), 4);
-  assert.equal(getEarthPageIndex("moon-phases"), 4);
-  assert.equal(getEarthPageIndex("eclipses"), 4);
-  assert.equal(getEarthPageIndex("seven-stars", "sun-earth-moon"), 4);
+  assert.equal(getEarthPageIndex("lunar-phenomena"), 3);
+  assert.equal(getEarthPageIndex("seven-stars", "sun-earth-moon"), 3);
+
+  assert.equal(getEarthPageIndex("moon-phases"), 3);
+  assert.equal(getEarthPageIndex("eclipses"), 3);
   assert.equal(resolveLunarPhenomenaView("eclipses", null), "eclipses");
   assert.equal(resolveLunarPhenomenaView("seven-stars", null, "sun-earth-moon"), "sun-earth-moon");
   assert.equal(getEarthTabLabel("eclipses"), "日月运行与历象");

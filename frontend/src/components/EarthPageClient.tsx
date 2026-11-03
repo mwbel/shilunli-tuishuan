@@ -9,7 +9,6 @@ import FiveElementsSubtab from "@/components/seven-stars/FiveElementsSubtab";
 import FivePlanetsSubtab from "@/components/seven-stars/FivePlanetsSubtab";
 import FivePlanetsSphere from "@/components/seven-stars/FivePlanetsSphere";
 import FiveElementsSphere from "@/components/seven-stars/FiveElementsSphere";
-import SevenStarsSubnav from "@/components/seven-stars/SevenStarsSubnav";
 import SunEarthMoonSpherePage from "@/components/seven-stars/SunEarthMoonSpherePage";
 import SevenStarsSpherePage from "@/components/seven-stars/SevenStarsSpherePage";
 import GeocentricMotionPage from "@/components/seven-stars/GeocentricMotionPage";
@@ -31,7 +30,6 @@ import {
   resolveCelestialMotionView,
   resolveLunarPhenomenaView,
   resolveBasicDataSubtab,
-  resolveSevenStarsSubtab,
 } from "@/features/earth/navigation";
 
 export default function EarthPageClient() {
@@ -40,11 +38,16 @@ export default function EarthPageClient() {
   const locale = useLocale();
   const tabParam = searchParams.get("tab");
   const legacySubtab = searchParams.get("subtab");
-  const currentSubtab = resolveSevenStarsSubtab(legacySubtab);
   const currentPhenomenaView = resolveLunarPhenomenaView(tabParam, searchParams.get("phenomena"), legacySubtab);
   const currentMotionView = resolveCelestialMotionView(tabParam, searchParams.get("motion"), legacySubtab);
   const currentBasicDataSubtab = resolveBasicDataSubtab(
-    searchParams.get("data") ?? (tabParam === "tibetan-cycle" ? "tibetan-cycle" : null)
+    searchParams.get("data") ?? (
+      tabParam === "tibetan-cycle"
+        ? "tibetan-cycle"
+        : tabParam === "seven-stars" && (legacySubtab === "five-elements" || legacySubtab === "five-elements-sphere")
+          ? legacySubtab
+          : null
+    )
   );
 
   const getInitialPage = useCallback(() => {
@@ -61,23 +64,9 @@ export default function EarthPageClient() {
     setCurrentPage(index);
     if (index === 0) router.push(localizePath(locale, "/earth?tab=zodiac"));
     if (index === 1) router.push(localizePath(locale, `/earth?tab=five-elements&data=${currentBasicDataSubtab}`));
-    if (index === 2) router.push(localizePath(locale, `/earth?tab=seven-stars&subtab=${currentSubtab}`));
-    if (index === 3) router.push(localizePath(locale, `/earth?tab=celestial-motion&motion=${currentMotionView}`));
-    if (index === 4) router.push(localizePath(locale, `/earth?tab=lunar-phenomena&phenomena=${currentPhenomenaView}`));
+    if (index === 2) router.push(localizePath(locale, `/earth?tab=celestial-motion&motion=${currentMotionView}`));
+    if (index === 3) router.push(localizePath(locale, `/earth?tab=lunar-phenomena&phenomena=${currentPhenomenaView}`));
   };
-
-  const sevenStarsItem =
-    currentSubtab === "seven-data"
-      ? <SevenData key="seven-data" />
-      : currentSubtab === "sun-earth-moon"
-        ? <SunEarthMoonSpherePage key="sun-earth-moon" />
-      : currentSubtab === "geocentric-motion"
-        ? <GeocentricMotionPage key="geocentric-motion" />
-      : currentSubtab === "five-elements-sphere"
-        ? <FiveElementsSphere key="five-elements-sphere" />
-      : currentSubtab === "five-elements"
-        ? <FiveElementsSubtab key="five-elements" />
-        : <SevenStarsSpherePage key="seven-stars" />;
 
   const basicDataItem = currentBasicDataSubtab === "tibetan-cycle"
     ? <TibetanCycle key="tibetan-cycle" />
@@ -89,9 +78,13 @@ export default function EarthPageClient() {
         ? <FiveElementsSphere key="basic-five-elements-sphere" />
       : <FiveElementsSubtab key="five-elements" />;
 
-  const celestialMotionItem = currentMotionView === "annual-motion"
-    ? <AnnualMotionSpherePage key="annual-motion" />
-    : <GeocentricMotionPage key="geocentric-motion" />;
+  const celestialMotionItem = currentMotionView === "seven-data"
+    ? <SevenData key="seven-data" />
+    : currentMotionView === "local-sky"
+      ? <SevenStarsSpherePage key="local-sky" />
+      : currentMotionView === "annual-motion"
+        ? <AnnualMotionSpherePage key="annual-motion" />
+        : <GeocentricMotionPage key="geocentric-motion" />;
 
   const lunarPhenomenaItem = currentPhenomenaView === "eclipses"
     ? <EclipsePage key="eclipses" />
@@ -102,12 +95,11 @@ export default function EarthPageClient() {
   const items = [
     <Zodiac key="zodiac" />,
     basicDataItem,
-    sevenStarsItem,
     celestialMotionItem,
     lunarPhenomenaItem,
   ];
 
-  const isSkyView = currentPage === 3 || (currentPage === 2 && currentSubtab === "seven-stars") || (currentPage === 1 && currentBasicDataSubtab === "five-elements-sphere");
+  const isSkyView = currentPage === 2 || (currentPage === 1 && currentBasicDataSubtab === "five-elements-sphere");
 
   return (
     <div className="starfield-bg text-white min-h-screen flex flex-col">
@@ -118,12 +110,13 @@ export default function EarthPageClient() {
             <EarthNav currentPage={getEarthTabLabel(tabParam, legacySubtab)} />
           </div>
           {currentPage === 1 && <BasicDataSubnav currentSubtab={currentBasicDataSubtab} />}
-          {currentPage === 2 && <SevenStarsSubnav currentSubtab={currentSubtab} />}
-          {currentPage === 3 && <EarthViewSubnav currentView={currentMotionView} views={[
+          {currentPage === 2 && <EarthViewSubnav currentView={currentMotionView} views={[
+            { id: "local-sky", label: "当地天球", href: "/earth?tab=celestial-motion&motion=local-sky" },
             { id: "geocentric-motion", label: "七曜每日运动（地心视角）", href: "/earth?tab=celestial-motion&motion=geocentric-motion" },
             { id: "annual-motion", label: "周年视运动（地心坐标）", href: "/earth?tab=celestial-motion&motion=annual-motion" },
+            { id: "seven-data", label: "七曜数据", href: "/earth?tab=celestial-motion&motion=seven-data" },
           ]} />}
-          {currentPage === 4 && <EarthViewSubnav currentView={currentPhenomenaView} views={[
+          {currentPage === 3 && <EarthViewSubnav currentView={currentPhenomenaView} views={[
             { id: "moon-phases", label: "月相", href: "/earth?tab=lunar-phenomena&phenomena=moon-phases" },
             { id: "sun-earth-moon", label: "日地月运动与月相（日心视角）", href: "/earth?tab=lunar-phenomena&phenomena=sun-earth-moon" },
             { id: "eclipses", label: "日月食查询", href: "/earth?tab=lunar-phenomena&phenomena=eclipses" },
